@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ZoroDBRestore.ViewModels"
+             x:DataType="vm:ConnectionsViewModel"
+             x:Class="ZoroDBRestore.Views.ConnectionsPage"
+             Title="Connections">
+
+    <Grid ColumnDefinitions="300,*" RowDefinitions="Auto,*" Padding="16,16,16,16" ColumnSpacing="16">
+
+        <!-- ══════════════ LEFT PANEL — profile list ══════════════ -->
+
+        <!-- List header + add button -->
+        <Grid Grid.Column="0" Grid.Row="0"
+              ColumnDefinitions="*,Auto"
+              Margin="0,0,0,8">
+            <Label Grid.Column="0"
+                   Text="Saved Connections"
+                   FontSize="15" FontAttributes="Bold"
+                   TextColor="{StaticResource OnBackground}"
+                   VerticalOptions="Center" />
+            <Button Grid.Column="1"
+                    Text="＋"
+                    Style="{StaticResource PrimaryButton}"
+                    Padding="10,6"
+                    Command="{Binding AddProfileCommand}"
+                    IsEnabled="{Binding IsNotBusy}" />
+        </Grid>
+
+        <!-- Profile list -->
+        <Border Grid.Column="0" Grid.Row="1"
+                Style="{StaticResource Card}"
+                Padding="0">
+            <CollectionView ItemsSource="{Binding ProfileItems}"
+                            SelectedItem="{Binding SelectedItem}"
+                            SelectionMode="Single">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProfileListItem">
+                        <Grid Padding="12,10" ColumnDefinitions="*,Auto"
+                              BackgroundColor="Transparent">
+
+                            <!-- Tap highlight via visual states is handled by selection -->
+                            <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Profile.Name}"
+                                       FontSize="14" FontAttributes="Bold"
+                                       TextColor="{StaticResource OnBackground}"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Subtitle}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource OnSurfaceMuted}" />
+                            </VerticalStackLayout>
+
+                            <!-- Default badge -->
+                            <Border Grid.Column="1"
+                                    IsVisible="{Binding IsDefault}"
+                                    BackgroundColor="{StaticResource BadgeDefaultBg}"
+                                    Stroke="{StaticResource BadgeDefaultBorder}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    Padding="8,3"
+                                    VerticalOptions="Center">
+                                <Label Text="Default"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BadgeDefaultFg}" />
+                            </Border>
+
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <!-- Separator between items -->
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+                </CollectionView.ItemsLayout>
+            </CollectionView>
+        </Border>
+
+        <!-- ══════════════ RIGHT PANEL — edit form ══════════════ -->
+
+        <!-- Right header -->
+        <Grid Grid.Column="1" Grid.Row="0"
+              ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+              ColumnSpacing="8"
+              Margin="0,0,0,8">
+            <Label Grid.Column="0"
+                   Text="Connection Details"
+                   FontSize="15" FontAttributes="Bold"
+                   TextColor="{StaticResource OnBackground}"
+                   VerticalOptions="Center" />
+
+            <Button Grid.Column="1"
+                    Text="⭐  Set Default"
+                    Style="{StaticResource OutlineButton}"
+                    Command="{Binding SetDefaultCommand}"
+                    IsEnabled="{Binding HasSelection}" />
+
+            <Button Grid.Column="2"
+                    Text="⎘  Duplicate"
+                    Style="{StaticResource OutlineButton}"
+                    Command="{Binding DuplicateProfileCommand}"
+                    IsEnabled="{Binding HasSelection}" />
+
+            <Button Grid.Column="3"
+                    Text="🗑  Delete"
+                    Style="{StaticResource DangerButton}"
+                    Command="{Binding DeleteProfileCommand}"
+                    IsEnabled="{Binding CanDelete}" />
+
+            <Button Grid.Column="4"
+                    Text="💾  Save"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding SaveProfileCommand}"
+                    IsEnabled="{Binding HasSelection}" />
+        </Grid>
+
+        <!-- Edit form -->
+        <ScrollView Grid.Column="1" Grid.Row="1">
+            <VerticalStackLayout Spacing="0"
+                                 IsEnabled="{Binding HasSelection}">
+
+                <!-- Empty state -->
+                <VerticalStackLayout IsVisible="{Binding HasSelection, Converter={StaticResource InverseBoolConverter}}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Spacing="8"
+                                     Padding="0,60,0,0">
+                    <Label Text="🔌" FontSize="40" HorizontalOptions="Center" />
+                    <Label Text="Select a connection to edit"
+                           FontSize="15"
+                           TextColor="{StaticResource OnSurfaceMuted}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <!-- Form -->
+                <Border Style="{StaticResource Card}"
+                        IsVisible="{Binding HasSelection}"
+                        Margin="0,0,0,12">
+                    <VerticalStackLayout Spacing="0">
+
+                        <Label Text="PROFILE NAME" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding EditName}"
+                               Placeholder="e.g. Production, Staging, Local"
+                               Style="{StaticResource FormEntry}" />
+
+                        <!-- ── Connection mode toggle ── -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,14,0,6">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Use Connection URI"
+                                       FontSize="14" FontAttributes="Bold"
+                                       TextColor="{StaticResource OnBackground}" />
+                                <Label Text="Required for MongoDB Atlas (SRV), replica sets, and TLS cloud providers."
+                                       FontSize="12"
+                                       TextColor="{StaticResource OnSurfaceMuted}"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding EditUseDirectUri}" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- URI mode input -->
+                        <VerticalStackLayout IsVisible="{Binding EditUseDirectUri}" Spacing="0">
+                            <Label Text="CONNECTION URI" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding EditDirectUri}"
+                                   Placeholder="mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true"
+                                   Style="{StaticResource FormEntry}" />
+                            <Label Text="Paste your full connection string. Credentials embedded in the URI are used automatically."
+                                   FontSize="11"
+                                   TextColor="{StaticResource OnSurfaceMuted}"
+                                   Margin="0,4,0,0"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+
+                        <!-- Standard mode fields -->
+                        <VerticalStackLayout IsVisible="{Binding IsStandardMode}" Spacing="0">
+
+                            <Grid ColumnDefinitions="*,140" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label Text="HOST" Style="{StaticResource FieldLabel}" />
+                                    <Entry Text="{Binding EditHost}"
+                                           Placeholder="localhost"
+                                           Style="{StaticResource FormEntry}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="PORT" Style="{StaticResource FieldLabel}" />
+                                    <Entry Text="{Binding EditPort}"
+                                           Placeholder="27017"
+                                           Keyboard="Numeric"
+                                           Style="{StaticResource FormEntry}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0">
+                                    <Label Text="USERNAME" Style="{StaticResource FieldLabel}" />
+                                    <Entry Text="{Binding EditUsername}"
+                                           Placeholder="(optional)"
+                                           Style="{StaticResource FormEntry}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="PASSWORD" Style="{StaticResource FieldLabel}" />
+                                    <Entry Text="{Binding EditPassword}"
+                                           IsPassword="True"
+                                           Placeholder="(optional)"
+                                           Style="{StaticResource FormEntry}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Label Text="AUTH DATABASE" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding EditAuthDatabase}"
+                                   Placeholder="admin (used if left blank)"
+                                   Style="{StaticResource FormEntry}" />
+                            <Label Text="If you clear this field, authentication uses the admin database — same as MongoDB default."
+                                   FontSize="11"
+                                   TextColor="{StaticResource OnSurfaceMuted}"
+                                   Margin="0,4,0,0"
+                                   LineBreakMode="WordWrap" />
+
+                            <HorizontalStackLayout Spacing="16" Margin="0,12,0,0">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Switch IsToggled="{Binding EditUseTls}" />
+                                    <Label Text="Use TLS / SSL" FontSize="14"
+                                           TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8"
+                                                       VerticalOptions="Center"
+                                                       IsVisible="{Binding EditUseTls}">
+                                    <Switch IsToggled="{Binding EditTlsAllowInvalidCertificates}" />
+                                    <Label Text="Allow invalid certificates (--tlsInsecure)" FontSize="13"
+                                           TextColor="{StaticResource Danger}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
+
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Test connection -->
+                <Border Style="{StaticResource Card}"
+                        IsVisible="{Binding HasSelection}">
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="12">
+                            <Button Text="⚡  Test Connection"
+                                    Style="{StaticResource OutlineButton}"
+                                    Command="{Binding TestConnectionCommand}"
+                                    IsEnabled="{Binding IsNotBusy}" />
+                            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                               IsVisible="{Binding IsBusy}"
+                                               VerticalOptions="Center" />
+                            <Label Text="{Binding StatusMessage}"
+                                   Style="{StaticResource StatusLabel}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Test result badge -->
+                        <Border IsVisible="{Binding HasTestResult}"
+                                Padding="12,8"
+                                StrokeShape="RoundRectangle 6"
+                                StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding TestResultSuccess}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource AlertSuccessBg}" />
+                                    <Setter Property="Stroke" Value="{StaticResource AlertSuccessBorder}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding TestResultSuccess}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource AlertErrorBg}" />
+                                    <Setter Property="Stroke" Value="{StaticResource AlertErrorBorder}" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label Text="{Binding TestResultMessage}" FontSize="13">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding TestResultSuccess}" Value="True">
+                                        <Setter Property="TextColor" Value="{StaticResource AlertSuccessFg}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding TestResultSuccess}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource AlertErrorFg}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

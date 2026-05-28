@@ -1,0 +1,7 @@
+Place the following files here (downloaded from https://www.mongodb.com/try/download/database-tools):
+
+  mongodump      (no extension)
+  mongorestore   (no extension)
+
+These are bundled into the macOS app and extracted to ~/Library/Application Support on first launch.
+The app will automatically run chmod +x on extraction.

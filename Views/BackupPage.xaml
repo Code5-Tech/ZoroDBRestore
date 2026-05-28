@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ZoroDBRestore.ViewModels"
+             xmlns:models="clr-namespace:ZoroDBRestore.Models"
+             x:DataType="vm:BackupViewModel"
+             x:Class="ZoroDBRestore.Views.BackupPage"
+             Title="Backup">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="24,20">
+
+            <Label Text="Database Backup" Style="{StaticResource SectionHeading}" />
+            <Label Text="Export one or all databases using mongodump."
+                   TextColor="{StaticResource OnSurfaceMuted}"
+                   FontSize="14"
+                   Margin="0,0,0,16" />
+
+            <!-- ── Connection picker ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0"
+                           Text="Connection"
+                           FontSize="13" FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurfaceMuted}"
+                           VerticalOptions="Center" />
+
+                    <Picker Grid.Column="1"
+                            ItemsSource="{Binding Profiles}"
+                            SelectedItem="{Binding SelectedProfile}"
+                            ItemDisplayBinding="{Binding Name}"
+                            BackgroundColor="{StaticResource FormFieldBackground}"
+                            TextColor="{StaticResource OnBackground}"
+                            FontSize="14" />
+
+                    <Label Grid.Column="2"
+                           Text="{Binding ActiveProfileLabel}"
+                           FontSize="12"
+                           TextColor="{StaticResource OnSurfaceMuted}"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- ── Backup config ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="0">
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                        <Label Grid.Column="0"
+                               Text="Backup Settings"
+                               FontSize="15" FontAttributes="Bold"
+                               TextColor="{StaticResource OnBackground}"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="↺  Refresh Databases"
+                                Style="{StaticResource OutlineButton}"
+                                Command="{Binding LoadDatabasesCommand}"
+                                IsEnabled="{Binding IsNotBusy}" />
+                    </Grid>
+
+                    <!-- Backup all toggle -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                        <Label Grid.Column="0"
+                               Text="Backup all databases"
+                               FontSize="14"
+                               TextColor="{StaticResource OnSurface}"
+                               VerticalOptions="Center" />
+                        <Switch Grid.Column="1" IsToggled="{Binding BackupAllDatabases}" />
+                    </Grid>
+
+                    <Label Text="DATABASE" Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding Databases}"
+                            SelectedItem="{Binding SelectedDatabase}"
+                            IsEnabled="{Binding BackupAllDatabases, Converter={StaticResource InverseBoolConverter}}"
+                            BackgroundColor="{StaticResource FormFieldBackground}"
+                            TextColor="{StaticResource OnBackground}"
+                            FontSize="14" />
+
+                    <Label Text="OUTPUT DIRECTORY" Style="{StaticResource FieldLabel}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Text="{Binding OutputDirectory}"
+                               Placeholder="Select output folder…"
+                               Style="{StaticResource FormEntry}" />
+                        <Button Grid.Column="1"
+                                Text="Browse"
+                                Style="{StaticResource OutlineButton}"
+                                Command="{Binding BrowseOutputDirectoryCommand}" />
+                    </Grid>
+
+                    <Label Text="OPTIONS" Style="{StaticResource FieldLabel}" />
+                    <HorizontalStackLayout Spacing="24">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Switch IsToggled="{Binding UseGzip}" />
+                            <Label Text="Compress (--gzip)" FontSize="14"
+                                   TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Switch IsToggled="{Binding UseOplog}" />
+                            <Label Text="Include oplog (--oplog)" FontSize="14"
+                                   TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Action buttons -->
+            <HorizontalStackLayout Spacing="12" Margin="0,0,0,16">
+                <Button Text="▶  Start Backup"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding StartBackupCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                <Button Text="⬛  Cancel"
+                        Style="{StaticResource DangerButton}"
+                        Command="{Binding CancelBackupCommand}"
+                        IsEnabled="{Binding IsBusy}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   VerticalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       Style="{StaticResource StatusLabel}"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Log output -->
+            <Border Style="{StaticResource Card}" Padding="0">
+                <VerticalStackLayout>
+                    <Label Text="Output Log"
+                           FontSize="13" FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurface}"
+                           Padding="12,10,12,6" />
+                    <BoxView HeightRequest="1" Color="{StaticResource CardBorder}" />
+                    <ScrollView HeightRequest="280">
+                        <Label Text="{Binding LogOutput}" Style="{StaticResource LogViewer}" />
+                    </ScrollView>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

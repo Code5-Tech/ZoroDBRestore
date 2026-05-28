@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ZoroDBRestore.ViewModels"
+             x:DataType="vm:RestoreViewModel"
+             x:Class="ZoroDBRestore.Views.RestorePage"
+             Title="Restore">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="24,20">
+
+            <Label Text="Database Restore" Style="{StaticResource SectionHeading}" />
+            <Label Text="Import a mongodump backup into a MongoDB server."
+                   TextColor="{StaticResource OnSurfaceMuted}"
+                   FontSize="14"
+                   Margin="0,0,0,16" />
+
+            <!-- ── Connection picker ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0"
+                           Text="Connection"
+                           FontSize="13" FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurfaceMuted}"
+                           VerticalOptions="Center" />
+                    <Picker Grid.Column="1"
+                            ItemsSource="{Binding Profiles}"
+                            SelectedItem="{Binding SelectedProfile}"
+                            ItemDisplayBinding="{Binding Name}"
+                            BackgroundColor="{StaticResource FormFieldBackground}"
+                            TextColor="{StaticResource OnBackground}"
+                            FontSize="14" />
+                    <Label Grid.Column="2"
+                           Text="{Binding ActiveProfileLabel}"
+                           FontSize="12"
+                           TextColor="{StaticResource OnSurfaceMuted}"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- ── Source folder ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="0">
+
+                    <Label Text="BACKUP SOURCE FOLDER" Style="{StaticResource FieldLabel}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Text="{Binding SourcePath}"
+                               Placeholder="Select the mongodump output folder…"
+                               Style="{StaticResource FormEntry}" />
+                        <Button Grid.Column="1"
+                                Text="Browse"
+                                Style="{StaticResource OutlineButton}"
+                                Command="{Binding BrowseSourcePathCommand}" />
+                    </Grid>
+
+                    <!-- Gzip auto-detected badge -->
+                    <Border IsVisible="{Binding GzipAutoDetected}"
+                            BackgroundColor="{StaticResource AlertInfoBg}"
+                            Stroke="{StaticResource AlertInfoBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="12,8"
+                            Margin="0,10,0,0">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="ℹ" FontSize="15" TextColor="{StaticResource AlertInfoFg}" VerticalOptions="Center" />
+                            <Label Text="Gzip-compressed backup detected — --gzip has been enabled automatically."
+                                   FontSize="13"
+                                   TextColor="{StaticResource AlertInfoFg}"
+                                   VerticalOptions="Center"
+                                   LineBreakMode="WordWrap" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Detected databases -->
+                    <VerticalStackLayout IsVisible="{Binding HasSourcePath}" Margin="0,12,0,0" Spacing="4">
+                        <Label Text="DATABASES FOUND IN BACKUP" Style="{StaticResource FieldLabel}" Margin="0,0,0,0" />
+                        <Picker ItemsSource="{Binding DetectedDatabases}"
+                                SelectedItem="{Binding SourceDatabase}"
+                                Title="— select source database (or leave blank to restore all) —"
+                                BackgroundColor="{StaticResource FormFieldBackground}"
+                                TextColor="{StaticResource OnBackground}"
+                                FontSize="14" />
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Restore target ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="0">
+
+                    <Label Text="Restore Target"
+                           FontSize="15" FontAttributes="Bold"
+                           TextColor="{StaticResource OnBackground}"
+                           Margin="0,0,0,8" />
+
+                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="16" VerticalOptions="Center">
+
+                        <!-- Source DB (read-only display) -->
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="SOURCE DATABASE (in backup)" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding SourceDatabase}"
+                                   Placeholder="(all databases)"
+                                   Style="{StaticResource FormEntry}" />
+                        </VerticalStackLayout>
+
+                        <!-- Arrow + rename indicator -->
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="End" Margin="0,0,0,4">
+                            <Label FontSize="20" HorizontalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsRenaming}" Value="True">
+                                        <Setter Property="Text" Value="→" />
+                                        <Setter Property="TextColor" Value="{StaticResource Warning}" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsRenaming}" Value="False">
+                                        <Setter Property="Text" Value="→" />
+                                        <Setter Property="TextColor" Value="{StaticResource OnSurfaceMuted}" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </VerticalStackLayout>
+
+                        <!-- Target DB -->
+                        <VerticalStackLayout Grid.Column="2">
+                            <Label Text="TARGET DATABASE (restore into)" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding TargetDatabase}"
+                                   Placeholder="(same as source)"
+                                   Style="{StaticResource FormEntry}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Rename mode info -->
+                    <Border IsVisible="{Binding IsRenaming}"
+                            BackgroundColor="{StaticResource AlertWarningBg}"
+                            Stroke="{StaticResource AlertWarningBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="12,8"
+                            Margin="0,10,0,0">
+                        <Label FontSize="13" TextColor="{StaticResource AlertWarningFg}" LineBreakMode="WordWrap">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="⭳  Rename mode: " FontAttributes="Bold" />
+                                    <Span Text="{Binding SourceDatabase}" />
+                                    <Span Text=" will be restored as " />
+                                    <Span Text="{Binding TargetDatabase}" FontAttributes="Bold" />
+                                    <Span Text=" using --nsFrom / --nsTo" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── Options ── -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <VerticalStackLayout Spacing="0">
+
+                    <Label Text="Options"
+                           FontSize="15" FontAttributes="Bold"
+                           TextColor="{StaticResource OnBackground}"
+                           Margin="0,0,0,10" />
+
+                    <!-- Drop warning -->
+                    <Border BackgroundColor="{StaticResource AlertWarningBg}"
+                            Stroke="{StaticResource AlertWarningBorder}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="12,8"
+                            Margin="0,0,0,10"
+                            IsVisible="{Binding DropBeforeRestore}">
+                        <Label Text="⚠  --drop will DELETE existing collections before restoring."
+                               FontSize="13" TextColor="{StaticResource AlertWarningFg}" />
+                    </Border>
+
+                    <FlexLayout Wrap="Wrap" Direction="Row" AlignItems="Center" JustifyContent="Start">
+                        <HorizontalStackLayout Spacing="8" Margin="0,0,24,8">
+                            <Switch IsToggled="{Binding DropBeforeRestore}" />
+                            <Label Text="Drop before restore (--drop)" FontSize="14"
+                                   TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8" Margin="0,0,24,8">
+                            <Switch IsToggled="{Binding UseGzip}" />
+                            <Label Text="Source is gzipped (--gzip)" FontSize="14"
+                                   TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="8" Margin="0,0,0,8">
+                            <Switch IsToggled="{Binding StopOnError}" />
+                            <Label Text="Stop on error (--stopOnError)" FontSize="14"
+                                   TextColor="{StaticResource OnSurface}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </FlexLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Action buttons -->
+            <HorizontalStackLayout Spacing="12" Margin="0,0,0,16">
+                <Button Text="▶  Start Restore"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding StartRestoreCommand}"
+                        IsEnabled="{Binding IsNotBusy}" />
+                <Button Text="⬛  Cancel"
+                        Style="{StaticResource DangerButton}"
+                        Command="{Binding CancelRestoreCommand}"
+                        IsEnabled="{Binding IsBusy}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   VerticalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       Style="{StaticResource StatusLabel}"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Log output -->
+            <Border Style="{StaticResource Card}" Padding="0">
+                <VerticalStackLayout>
+                    <Label Text="Output Log"
+                           FontSize="13" FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurface}"
+                           Padding="12,10,12,6" />
+                    <BoxView HeightRequest="1" Color="{StaticResource CardBorder}" />
+                    <ScrollView HeightRequest="280">
+                        <Label Text="{Binding LogOutput}" Style="{StaticResource LogViewer}" />
+                    </ScrollView>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

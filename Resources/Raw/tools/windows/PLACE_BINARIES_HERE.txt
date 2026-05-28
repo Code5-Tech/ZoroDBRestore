@@ -1,0 +1,6 @@
+Place the following files here (downloaded from https://www.mongodb.com/try/download/database-tools):
+
+  mongodump.exe
+  mongorestore.exe
+
+These are bundled into the Windows app and extracted to AppData on first launch.

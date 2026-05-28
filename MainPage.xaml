@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+	x:Class="ZoroDBRestore.MainPage"
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	Title="Dashboard">
+
+	<ScrollView>
+		<VerticalStackLayout
+			Padding="24,32"
+			HorizontalOptions="Center"
+			MaximumWidthRequest="700"
+			Spacing="0">
+
+			<!--  App title  -->
+			<HorizontalStackLayout Margin="0,0,0,8" Spacing="14">
+				<Label
+					FontSize="36"
+					Text="🗄"
+					VerticalOptions="Center" />
+				<VerticalStackLayout VerticalOptions="Center">
+					<Label
+						FontAttributes="Bold"
+						FontSize="28"
+						Text="Zoro Mongo Backup"
+						TextColor="{StaticResource OnBackground}" />
+					<Label
+						FontSize="14"
+						Text="MongoDB Backup &amp; Restore Utility"
+						TextColor="{StaticResource OnSurfaceMuted}" />
+				</VerticalStackLayout>
+			</HorizontalStackLayout>
+
+			<BoxView
+				Margin="0,16,0,24"
+				HeightRequest="1"
+				Color="{StaticResource CardBorder}" />
+
+			<!--  Quick action cards  -->
+			<Grid
+				ColumnDefinitions="*,*,*"
+				ColumnSpacing="16"
+				RowSpacing="16">
+
+				<!--  Connections card  -->
+				<Border Grid.Column="0" Style="{StaticResource Card}">
+					<VerticalStackLayout Spacing="10">
+						<Label FontSize="32" Text="🔌" />
+						<Label
+							FontAttributes="Bold"
+							FontSize="18"
+							Text="Connections"
+							TextColor="{StaticResource OnBackground}" />
+						<Label
+							FontSize="13"
+							LineBreakMode="WordWrap"
+							Text="Manage saved MongoDB connection profiles. Set one as default for quick access."
+							TextColor="{StaticResource OnSurfaceMuted}" />
+						<Button
+							Margin="0,6,0,0"
+							Clicked="OnConnectionsClicked"
+							HorizontalOptions="Start"
+							Style="{StaticResource PrimaryButton}"
+							Text="Manage Connections" />
+					</VerticalStackLayout>
+				</Border>
+
+				<!--  Backup card  -->
+				<Border Grid.Column="1" Style="{StaticResource Card}">
+					<VerticalStackLayout Spacing="10">
+						<Label FontSize="32" Text="📦" />
+						<Label
+							FontAttributes="Bold"
+							FontSize="18"
+							Text="Backup"
+							TextColor="{StaticResource OnBackground}" />
+						<Label
+							FontSize="13"
+							LineBreakMode="WordWrap"
+							Text="Export databases to disk using mongodump. Supports compression and oplog."
+							TextColor="{StaticResource OnSurfaceMuted}" />
+						<Button
+							Margin="0,6,0,0"
+							Clicked="OnBackupClicked"
+							HorizontalOptions="Start"
+							Style="{StaticResource PrimaryButton}"
+							Text="Open Backup" />
+					</VerticalStackLayout>
+				</Border>
+
+				<!--  Restore card  -->
+				<Border Grid.Column="2" Style="{StaticResource Card}">
+					<VerticalStackLayout Spacing="10">
+						<Label FontSize="32" Text="🔄" />
+						<Label
+							FontAttributes="Bold"
+							FontSize="18"
+							Text="Restore"
+							TextColor="{StaticResource OnBackground}" />
+						<Label
+							FontSize="13"
+							LineBreakMode="WordWrap"
+							Text="Import a mongodump backup into your MongoDB server with flexible options."
+							TextColor="{StaticResource OnSurfaceMuted}" />
+						<Button
+							Margin="0,6,0,0"
+							Clicked="OnRestoreClicked"
+							HorizontalOptions="Start"
+							Style="{StaticResource PrimaryButton}"
+							Text="Open Restore" />
+					</VerticalStackLayout>
+				</Border>
+
+			</Grid>
+
+			<!--  Info strip — dark panel for contrast  -->
+			<Border
+				Margin="0,16,0,0"
+				Padding="14,12"
+				BackgroundColor="{StaticResource InfoStripBackground}"
+				Stroke="{StaticResource CardBorder}"
+				StrokeThickness="1"
+				StrokeShape="RoundRectangle 8">
+				<HorizontalStackLayout Spacing="12">
+					<Label
+						FontSize="18"
+						Text="ℹ"
+						TextColor="{StaticResource InfoStripText}"
+						VerticalOptions="Center" />
+					<Label
+						FontSize="13"
+						LineBreakMode="WordWrap"
+						Text="Configure your MongoDB connection and tool paths in Settings before running backup or restore operations."
+						TextColor="{StaticResource InfoStripText}"
+						VerticalOptions="Center" />
+				</HorizontalStackLayout>
+			</Border>
+
+		</VerticalStackLayout>
+	</ScrollView>
+</ContentPage>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:local="clr-namespace:ZoroDBRestore"
+       xmlns:views="clr-namespace:ZoroDBRestore.Views"
+       x:Class="ZoroDBRestore.AppShell"
+       Shell.NavBarIsVisible="False"
+       Shell.TabBarBackgroundColor="{StaticResource InfoStripBackground}"
+       Shell.TabBarForegroundColor="{StaticResource White}"
+       Shell.TabBarTitleColor="{StaticResource White}"
+       Shell.TabBarUnselectedColor="{StaticResource White}">
+
+    <TabBar>
+        <Tab Title="Dashboard" Icon="house.svg">
+            <ShellContent Route="dashboard"
+                          ContentTemplate="{DataTemplate local:MainPage}" />
+        </Tab>
+
+        <Tab Title="Connections" Icon="connections.svg">
+            <ShellContent Route="connections"
+                          ContentTemplate="{DataTemplate views:ConnectionsPage}" />
+        </Tab>
+
+        <Tab Title="Backup" Icon="arrow_up.svg">
+            <ShellContent Route="backup"
+                          ContentTemplate="{DataTemplate views:BackupPage}" />
+        </Tab>
+
+        <Tab Title="Restore" Icon="arrow_down.svg">
+            <ShellContent Route="restore"
+                          ContentTemplate="{DataTemplate views:RestorePage}" />
+        </Tab>
+
+        <Tab Title="Settings" Icon="settings.svg">
+            <ShellContent Route="settings"
+                          ContentTemplate="{DataTemplate views:SettingsPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>
